@@ -1,5 +1,3 @@
-import nodemailer from 'nodemailer';
-
 interface ContactMessage {
   id: string;
   name: string;
@@ -10,26 +8,53 @@ interface ContactMessage {
 }
 
 /**
- * Create email transporter
- * Supports both SMTP and Gmail
+ * Check if email is configured
  */
-function createTransporter() {
+function isEmailConfigured(): boolean {
+  return !!(
+    (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ||
+    (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD)
+  );
+}
+
+/**
+ * Send email notification for new contact form submission
+ * If email is not configured, logs to console instead
+ */
+export async function sendContactNotification(contactMessage: ContactMessage) {
+  // If no email is configured, just log to console
+  if (!isEmailConfigured()) {
+    console.log('\n📧 NEW CONTACT FORM SUBMISSION:');
+    console.log('━'.repeat(60));
+    console.log(`From: ${contactMessage.name} <${contactMessage.email}>`);
+    console.log(`Subject: ${contactMessage.subject}`);
+    console.log(`Date: ${contactMessage.createdAt.toLocaleString()}`);
+    console.log('━'.repeat(60));
+    console.log(`Message:\n${contactMessage.message}`);
+    console.log('━'.repeat(60));
+    console.log(`Reply to: ${contactMessage.email}\n`);
+    return { logged: true };
+  }
+
+  // Dynamically import nodemailer only when configured
+  const nodemailer = await import('nodemailer');
+
+  let transporter;
+
   // For production, use SMTP credentials from environment
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    return nodemailer.createTransport({
+    transporter = nodemailer.default.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
     });
-  }
-
-  // For Gmail, use app-specific password
-  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-    return nodemailer.createTransport({
+  } else if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    // For Gmail, use app-specific password
+    transporter = nodemailer.default.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.GMAIL_USER,
@@ -38,20 +63,10 @@ function createTransporter() {
     });
   }
 
-  // For development/testing - log to console only
-  console.warn('No email credentials configured. Email will be logged to console only.');
-  return nodemailer.createTransport({
-    streamTransport: true,
-    newline: 'unix',
-    buffer: true,
-  });
-}
-
-/**
- * Send email notification for new contact form submission
- */
-export async function sendContactNotification(contactMessage: ContactMessage) {
-  const transporter = createTransporter();
+  if (!transporter) {
+    console.warn('Email transporter could not be created');
+    return { error: 'Email not configured' };
+  }
 
   const mailOptions = {
     from: process.env.SMTP_FROM || process.env.GMAIL_USER || 'noreply@healthpedhyan.com',
@@ -102,83 +117,22 @@ Reply to: ${contactMessage.email}
     `,
   };
 
-  const info = await transporter.sendMail(mailOptions);
-
-  // For development transporter, log the message
-  if (info.message) {
-    console.log('Email would be sent:');
-    console.log(info.message.toString());
-  } else {
-    console.log('Email sent:', info.messageId);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email notification sent:', info.messageId);
+    return info;
+  } catch (error) {
+    console.error('Failed to send email notification:', error);
+    throw error;
   }
-
-  return info;
 }
 
 /**
  * Send confirmation email to the person who submitted the form
+ * This is optional - currently disabled by default
  */
 export async function sendContactConfirmation(contactMessage: ContactMessage) {
-  const transporter = createTransporter();
-
-  const mailOptions = {
-    from: process.env.SMTP_FROM || process.env.GMAIL_USER || 'hello@healthpedhyan.com',
-    to: contactMessage.email,
-    subject: `We received your message: ${contactMessage.subject}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #059669;">Thank you for contacting HealthPeDhyan™</h2>
-
-        <p>Hi ${contactMessage.name},</p>
-
-        <p>We've received your message and will get back to you as soon as possible, usually within 24-48 hours.</p>
-
-        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0;">Your message:</h3>
-          <p style="margin: 5px 0;"><strong>Subject:</strong> ${contactMessage.subject}</p>
-          <p style="white-space: pre-wrap; margin-top: 10px;">${contactMessage.message}</p>
-        </div>
-
-        <p>If you have any urgent concerns, please reply to this email.</p>
-
-        <p>Best regards,<br>The HealthPeDhyan Team</p>
-
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
-        <p style="color: #6b7280; font-size: 12px; text-align: center;">
-          HealthPeDhyan™ - Healthy choices made easy
-        </p>
-      </div>
-    `,
-    text: `
-Thank you for contacting HealthPeDhyan™
-
-Hi ${contactMessage.name},
-
-We've received your message and will get back to you as soon as possible, usually within 24-48 hours.
-
-Your message:
-Subject: ${contactMessage.subject}
-
-${contactMessage.message}
-
-If you have any urgent concerns, please reply to this email.
-
-Best regards,
-The HealthPeDhyan Team
-
----
-HealthPeDhyan™ - Healthy choices made easy
-    `,
-  };
-
-  const info = await transporter.sendMail(mailOptions);
-
-  if (info.message) {
-    console.log('Confirmation email would be sent to:', contactMessage.email);
-  } else {
-    console.log('Confirmation email sent to:', contactMessage.email);
-  }
-
-  return info;
+  // Skip confirmation emails for now
+  console.log(`Confirmation email skipped for: ${contactMessage.email}`);
+  return { skipped: true };
 }
