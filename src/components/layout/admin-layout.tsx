@@ -11,7 +11,7 @@ import {
   FolderTree,
   Tag,
   Award,
-  Flask,
+  FlaskConical,
   BookOpen,
   LogOut,
   Menu,
@@ -27,7 +27,7 @@ const navigation = [
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Brands', href: '/admin/brands', icon: Tag },
   { name: 'Badges', href: '/admin/badges', icon: Award },
-  { name: 'Ingredients', href: '/admin/ingredients', icon: Flask },
+  { name: 'Ingredients', href: '/admin/ingredients', icon: FlaskConical },
   { name: 'Evidence', href: '/admin/evidence', icon: BookOpen },
 ];
 
