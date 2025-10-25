@@ -205,7 +205,9 @@ model Article {
   excerpt      String?       @db.Text
   bodyMarkdown String        @db.Text
   coverImage   String?
+  videoUrl     String?
   category     String?
+  tags         String?
   status       ArticleStatus @default(DRAFT)
   metaJson     Json?         @db.JsonB
   publishedAt  DateTime?
