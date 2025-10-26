@@ -1,35 +1,30 @@
-import { createWorker } from 'tesseract.js';
+import Tesseract from 'tesseract.js';
 
 /**
  * Extract text from an image using Tesseract OCR
- * Configured to work in Node.js environment without Web Workers
+ * Uses direct recognition API for Node.js compatibility (no Web Workers)
  */
 export async function extractTextFromImage(
   imageSource: string | File | Blob
 ): Promise<{ text: string; confidence: number }> {
-  console.log('🔧 Creating Tesseract worker with Node.js configuration...');
-
-  // Configure worker for Node.js environment (disables Web Workers)
-  const worker = await createWorker('eng', 1, {
-    // Use legacy core and language mode for better Node.js compatibility
-    legacyCore: true,
-    legacyLang: true,
-    // Disable worker threads - run in main process
-    gzipWorkerBlob: false,
-    // Enable detailed logging for debugging
-    logger: (m) => {
-      if (m.status === 'recognizing text') {
-        console.log(`📊 OCR Progress: ${Math.round(m.progress * 100)}%`);
-      }
-    },
-  });
-
-  console.log('✅ Tesseract worker created successfully');
+  console.log('🔍 Starting Tesseract OCR (direct recognition mode)...');
 
   try {
-    console.log('🔍 Starting text recognition...');
-    const result = await worker.recognize(imageSource);
-    console.log(`✅ Text recognition complete! Extracted ${result.data.text.length} characters`);
+    // Use direct recognize method instead of createWorker to avoid Web Worker issues
+    const result = await Tesseract.recognize(
+      imageSource,
+      'eng',
+      {
+        logger: (m) => {
+          if (m.status === 'recognizing text') {
+            console.log(`📊 OCR Progress: ${Math.round(m.progress * 100)}%`);
+          }
+        },
+      }
+    );
+
+    console.log(`✅ Text recognition complete!`);
+    console.log(`📝 Extracted ${result.data.text.length} characters with ${Math.round(result.data.confidence)}% confidence`);
 
     return {
       text: result.data.text,
@@ -38,10 +33,6 @@ export async function extractTextFromImage(
   } catch (error: any) {
     console.error('❌ Tesseract recognition error:', error);
     throw new Error(`OCR failed: ${error.message}`);
-  } finally {
-    console.log('🧹 Terminating Tesseract worker...');
-    await worker.terminate();
-    console.log('✅ Worker terminated successfully');
   }
 }
 
