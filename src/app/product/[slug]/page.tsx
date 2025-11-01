@@ -2,11 +2,10 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { buildAffiliateUrl } from '@/lib/affiliate';
 import { generateMetadata as genMeta, generateProductSchema } from '@/lib/seo';
-import { ExternalLink } from 'lucide-react';
+import { AffiliateButton } from '@/components/product/affiliate-button';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const product = await prisma.product.findUnique({
@@ -89,28 +88,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 .map((link) => {
                   const affiliateUrl = buildAffiliateUrl(link.url, link.merchant);
                   return (
-                    <a
+                    <AffiliateButton
                       key={link.id}
                       href={affiliateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer sponsored"
-                      className="block"
-                      onClick={() => {
-                        // GA4 event tracking
-                        if (typeof window !== 'undefined' && (window as any).gtag) {
-                          (window as any).gtag('event', 'affiliate_click', {
-                            product_id: product.id,
-                            merchant: link.merchant,
-                            url: affiliateUrl,
-                          });
-                        }
-                      }}
-                    >
-                      <Button className="w-full" size="lg">
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Buy on {link.merchant}
-                      </Button>
-                    </a>
+                      merchant={link.merchant}
+                      productId={product.id}
+                    />
                   );
                 })}
             </div>
