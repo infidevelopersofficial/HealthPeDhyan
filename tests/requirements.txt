@@ -1,6 +1,13 @@
+# Core testing framework
 pytest==7.4.3
+
+# Playwright for browser automation
 playwright==1.40.0
 pytest-playwright==0.4.3
+
+# Test utilities
 pytest-base-url==2.0.0
 pytest-html==4.1.1
-pytest-xdist==3.5.0
+
+# Parallel execution (optional - skip if compilation issues)
+# pytest-xdist==3.5.0

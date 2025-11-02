@@ -1,0 +1,4 @@
+# Minimal requirements for Windows (no compilation needed)
+pytest>=7.4.0
+playwright>=1.40.0
+pytest-playwright>=0.4.0
