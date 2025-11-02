@@ -87,25 +87,12 @@ export async function DELETE(
 
     const productId = params.id;
 
-    // Delete related records first (due to foreign key constraints)
-    await prisma.$transaction([
-      // Delete product badges
-      prisma.productBadge.deleteMany({
-        where: { productId },
-      }),
-      // Delete affiliate links
-      prisma.affiliateLink.deleteMany({
-        where: { productId },
-      }),
-      // Delete label scans
-      prisma.labelScan.deleteMany({
-        where: { productId },
-      }),
-      // Finally delete the product
-      prisma.product.delete({
-        where: { id: productId },
-      }),
-    ]);
+    // Delete the product
+    // Related records (badges, affiliate links, ingredient flags) will be cascade deleted
+    // due to onDelete: Cascade in the schema
+    await prisma.product.delete({
+      where: { id: productId },
+    });
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
   } catch (error: any) {
