@@ -50,10 +50,7 @@
       ]
     ],
     "extra": {
-      "apiUrl": "https://healthpedhyan.com",
-      "eas": {
-        "projectId": "healthpedhyan-mobile"
-      }
+      "apiUrl": "https://healthpedhyan.com"
     }
   }
 }
