@@ -43,7 +43,7 @@ echo.
 echo Running Playwright tests...
 echo.
 
-pytest --browser chromium --html=test-results/report.html --self-contained-html -v
+pytest --browser chromium -v
 
 if errorlevel 1 (
     echo.
@@ -51,7 +51,6 @@ if errorlevel 1 (
     echo [FAILED] Some tests failed
     echo ==================================
     echo.
-    echo View report: test-results\report.html
     echo Screenshots: screenshots\
     exit /b 1
 ) else (
@@ -59,6 +58,4 @@ if errorlevel 1 (
     echo ==================================
     echo [SUCCESS] All tests passed!
     echo ==================================
-    echo.
-    echo View report: test-results\report.html
 )

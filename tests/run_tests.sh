@@ -97,8 +97,6 @@ pytest $TEST_FILE \
     --browser $BROWSER \
     $HEADED \
     $MARKERS \
-    --html=test-results/report.html \
-    --self-contained-html \
     -v
 
 # Check exit code
@@ -108,14 +106,12 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ All tests passed!${NC}"
     echo -e "${GREEN}==================================${NC}"
     echo ""
-    echo -e "View report: ${YELLOW}test-results/report.html${NC}"
 else
     echo ""
     echo -e "${RED}==================================${NC}"
     echo -e "${RED}✗ Some tests failed${NC}"
     echo -e "${RED}==================================${NC}"
     echo ""
-    echo -e "View report: ${YELLOW}test-results/report.html${NC}"
     echo -e "Screenshots: ${YELLOW}screenshots/${NC}"
     exit 1
 fi
