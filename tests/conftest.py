@@ -15,13 +15,7 @@ def browser_context_args(browser_context_args):
     }
 
 
-@pytest.fixture
-def base_url():
-    """Base URL for the application"""
-    return "http://localhost:3000"
-
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def admin_credentials():
     """Admin login credentials"""
     return {
@@ -31,8 +25,11 @@ def admin_credentials():
 
 
 @pytest.fixture
-def logged_in_page(page: Page, base_url: str, admin_credentials: dict):
+def logged_in_page(page: Page, admin_credentials: dict):
     """Returns a page with admin already logged in"""
+    # Use the base URL from pytest.ini
+    base_url = "http://localhost:3000"
+
     # Navigate to admin login
     page.goto(f"{base_url}/admin/login")
 
@@ -44,11 +41,11 @@ def logged_in_page(page: Page, base_url: str, admin_credentials: dict):
     page.click('button[type="submit"]')
 
     # Wait for navigation to admin dashboard
-    page.wait_for_url(f"{base_url}/admin/dashboard")
+    page.wait_for_url(f"{base_url}/admin/dashboard", timeout=10000)
 
     return page
 
 
 def take_screenshot(page: Page, name: str):
     """Helper to take screenshots for debugging"""
-    page.screenshot(path=f"tests/screenshots/{name}.png")
+    page.screenshot(path=f"screenshots/{name}.png")
