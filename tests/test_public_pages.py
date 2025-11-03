@@ -2,6 +2,7 @@
 Tests for public-facing pages (non-admin)
 """
 import pytest
+import re
 from playwright.sync_api import Page, expect
 
 
@@ -60,7 +61,7 @@ class TestHomePage:
         page.goto(base_url)
 
         # If using mock data, banner should be visible
-        banner = page.locator('text=/Demo Mode|Sample Products/i')
+        banner = page.locator('text=re.compile(r"Demo Mode|Sample Products", re.IGNORECASE)')
         # This may or may not be visible depending on whether DB is connected
         # Just check it doesn't error
 
@@ -100,7 +101,7 @@ class TestShopPage:
         page.goto(f"{base_url}/shop")
 
         # Look for product count text
-        product_count = page.locator('text=/\\d+ products? found/i')
+        product_count = page.locator('text=re.compile(r"\\d+ products? found", re.IGNORECASE)')
         expect(product_count).to_be_visible()
 
 
@@ -126,7 +127,7 @@ class TestProductDetailPage:
 
         # Check for health score badge or display
         # This will vary based on your design
-        health_score = page.locator('text=/Health Score|health.*score/i')
+        health_score = page.locator('text=re.compile(r"Health Score|health.*score", re.IGNORECASE)')
         # Just verify page loaded, score display varies
 
 
@@ -180,7 +181,7 @@ class TestLabelScanner:
         page.goto(f"{base_url}/scan")
 
         # Look for file upload input or upload button
-        upload_input = page.locator('input[type="file"], text=/upload/i, text=/scan/i')
+        upload_input = page.locator('input[type="file"], text=re.compile(r"upload", re.IGNORECASE), text=re.compile(r"scan", re.IGNORECASE)')
         # Should have some upload mechanism
 
 
@@ -196,7 +197,7 @@ class TestNavigation:
         expect(nav).to_be_visible()
 
         # Try clicking shop link
-        shop_link = page.get_by_role("link", name=/shop/i).first
+        shop_link = page.get_by_role("link", name=re.compile(r"shop", re.IGNORECASE)).first
         if shop_link.is_visible():
             shop_link.click()
             expect(page).to_have_url(f"{base_url}/shop")

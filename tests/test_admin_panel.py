@@ -2,6 +2,7 @@
 Tests for admin panel functionality
 """
 import pytest
+import re
 from playwright.sync_api import Page, expect
 import time
 
@@ -80,7 +81,7 @@ class TestAdminProducts:
         """Test 'Add Product' button navigates correctly"""
         logged_in_page.goto(f"{base_url}/admin/products")
 
-        add_button = logged_in_page.get_by_role("link", name=/Add Product/i)
+        add_button = logged_in_page.get_by_role("link", name=re.compile(r"Add Product", re.IGNORECASE))
         expect(add_button).to_be_visible()
         add_button.click()
 
@@ -91,7 +92,7 @@ class TestAdminProducts:
         logged_in_page.goto(f"{base_url}/admin/products")
 
         # Find first edit button
-        edit_button = logged_in_page.get_by_role("link", name=/Edit/i).first
+        edit_button = logged_in_page.get_by_role("link", name=re.compile(r"Edit", re.IGNORECASE)).first
         if edit_button.is_visible():
             edit_button.click()
 
@@ -112,7 +113,7 @@ class TestAdminProducts:
             expect(dialog).to_be_visible()
 
             # Cancel button should be present
-            cancel_button = logged_in_page.get_by_role("button", name=/Cancel/i)
+            cancel_button = logged_in_page.get_by_role("button", name=re.compile(r"Cancel", re.IGNORECASE))
             expect(cancel_button).to_be_visible()
             cancel_button.click()
 
@@ -136,7 +137,7 @@ class TestAdminProducts:
         logged_in_page.goto(f"{base_url}/admin/products/new")
 
         # Try to submit empty form
-        submit_button = logged_in_page.get_by_role("button", name=/Save|Create/i)
+        submit_button = logged_in_page.get_by_role("button", name=re.compile(r"Save|Create", re.IGNORECASE))
         submit_button.click()
 
         # Should show validation errors or not submit
@@ -157,7 +158,7 @@ class TestAdminArticles:
         """Test 'New Article' button"""
         logged_in_page.goto(f"{base_url}/admin/articles")
 
-        new_button = logged_in_page.get_by_role("link", name=/New Article/i)
+        new_button = logged_in_page.get_by_role("link", name=re.compile(r"New Article", re.IGNORECASE))
         expect(new_button).to_be_visible()
         new_button.click()
 
@@ -167,7 +168,7 @@ class TestAdminArticles:
         """Test edit button on article list"""
         logged_in_page.goto(f"{base_url}/admin/articles")
 
-        edit_button = logged_in_page.get_by_role("link", name=/Edit/i).first
+        edit_button = logged_in_page.get_by_role("link", name=re.compile(r"Edit", re.IGNORECASE)).first
         if edit_button.is_visible():
             edit_button.click()
             expect(logged_in_page).to_have_url(f"{base_url}/admin/articles/", {"ignore_case": True})
@@ -185,7 +186,7 @@ class TestAdminArticles:
             dialog = logged_in_page.locator('[role="dialog"], [role="alertdialog"]')
             expect(dialog).to_be_visible()
 
-            cancel = logged_in_page.get_by_role("button", name=/Cancel/i)
+            cancel = logged_in_page.get_by_role("button", name=re.compile(r"Cancel", re.IGNORECASE))
             cancel.click()
 
     def test_create_article_form(self, logged_in_page: Page, base_url: str):

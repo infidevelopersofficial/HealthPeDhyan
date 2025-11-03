@@ -3,6 +3,7 @@ End-to-end user journey tests
 Simulates complete user flows through the application
 """
 import pytest
+import re
 from playwright.sync_api import Page, expect
 import time
 
@@ -31,7 +32,7 @@ class TestProductDiscoveryJourney:
 
         # Step 5: Check for affiliate links (View on Amazon, etc.)
         # Affiliate buttons should be present
-        affiliate_section = page.locator('text=/View|Buy|Amazon|Flipkart/i')
+        affiliate_section = page.locator('text=re.compile(r"View|Buy|Amazon|Flipkart", re.IGNORECASE)')
 
     def test_browse_shop_and_filter(self, page: Page, base_url: str):
         """
@@ -127,7 +128,7 @@ class TestAdminContentManagementJourney:
         expect(logged_in_page.locator("h1")).to_contain_text("Products")
 
         # Step 3: Click "Add Product"
-        logged_in_page.get_by_role("link", name=/Add Product/i).click()
+        logged_in_page.get_by_role("link", name=re.compile(r"Add Product", re.IGNORECASE)).click()
         expect(logged_in_page).to_have_url(f"{base_url}/admin/products/new")
 
         # Step 4: Fill in basic product info
@@ -147,7 +148,7 @@ class TestAdminContentManagementJourney:
 
         # Step 7: Save (note: this will actually create a product in the database)
         # Uncomment below to actually test creation (will modify database)
-        # logged_in_page.get_by_role("button", name=/Save|Create/i).click()
+        # logged_in_page.get_by_role("button", name=re.compile(r"Save|Create", re.IGNORECASE)).click()
 
         # Step 8: Should redirect to products list
         # expect(logged_in_page).to_have_url(f"{base_url}/admin/products")
@@ -163,7 +164,7 @@ class TestAdminContentManagementJourney:
         logged_in_page.goto(f"{base_url}/admin/products")
 
         # Step 2: Click edit on first product
-        edit_button = logged_in_page.get_by_role("link", name=/Edit/i).first
+        edit_button = logged_in_page.get_by_role("link", name=re.compile(r"Edit", re.IGNORECASE)).first
         if edit_button.is_visible():
             edit_button.click()
 
@@ -194,7 +195,7 @@ class TestAdminContentManagementJourney:
             expect(dialog).to_be_visible()
 
             # Step 4: Cancel instead of deleting
-            logged_in_page.get_by_role("button", name=/Cancel/i).click()
+            logged_in_page.get_by_role("button", name=re.compile(r"Cancel", re.IGNORECASE)).click()
 
             # Step 5: Dialog closes
             time.sleep(0.5)
@@ -202,7 +203,7 @@ class TestAdminContentManagementJourney:
 
             # If you want to test actual deletion, uncomment:
             # delete_button.click()
-            # logged_in_page.get_by_role("button", name=/Delete/i).click()
+            # logged_in_page.get_by_role("button", name=re.compile(r"Delete", re.IGNORECASE)).click()
             # time.sleep(1)
             # # Product should be removed from list
 
@@ -223,7 +224,7 @@ class TestMobileUserJourney:
 
         # Step 2: Navigate to shop
         # Mobile menu might be different
-        shop_link = page.get_by_role("link", name=/shop/i).first
+        shop_link = page.get_by_role("link", name=re.compile(r"shop", re.IGNORECASE)).first
         if shop_link.is_visible():
             shop_link.click()
 
