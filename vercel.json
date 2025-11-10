@@ -4,14 +4,6 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "regions": ["bom1"],
-  "functions": {
-    "api/**/*.ts": {
-      "maxDuration": 30
-    },
-    "src/app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
