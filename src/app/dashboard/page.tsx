@@ -39,7 +39,11 @@ export default async function DashboardPage() {
       },
       productViews: {
         include: {
-          product: true,
+          product: {
+            include: {
+              brand: true,
+            },
+          },
         },
         orderBy: { viewedAt: 'desc' },
         take: 5,
