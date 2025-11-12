@@ -205,7 +205,7 @@ export default async function DashboardPage() {
                       <Bookmark className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
-                          {bookmark.product?.name || bookmark.article?.title}
+                          {bookmark.product?.title || bookmark.article?.title}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           {bookmark.notes || 'No notes'}
