@@ -18,3 +18,15 @@ Dockerfile
 playwright-report
 test-results
 e2e
+mobile
+eas.json
+.DS_Store
+.prettierrc
+.eslintrc
+tsconfig.json
+Makefile
+.husky
+jest.config.js
+.gitignore
+CHANGELOG.md
+docs

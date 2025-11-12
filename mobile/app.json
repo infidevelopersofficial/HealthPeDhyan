@@ -29,7 +29,8 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -50,7 +51,10 @@
       ]
     ],
     "extra": {
-      "apiUrl": "https://healthpedhyan.com"
+      "apiUrl": "https://healthpedhyan.com",
+      "eas": {
+        "projectId": "d5035fca-4ac3-4342-8e46-fb3349ea63c3"
+      }
     }
   }
 }
