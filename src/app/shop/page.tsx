@@ -96,7 +96,7 @@ export default async function ShopPage({
       if (searchParams.wholeGrain === 'true' && !p.isWholeGrain) return false;
       if (searchParams.category && p.category.slug !== searchParams.category) return false;
       return true;
-    });
+    }) as typeof products;
   }
 
   const activeCategory = searchParams.category;
