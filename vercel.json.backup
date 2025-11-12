@@ -1,0 +1,81 @@
+{
+  "buildCommand": "pnpm install && pnpm db:generate && pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "projectSettings": {
+    "sourceFilesOutsideRootDirectory": false
+  },
+  "env": {
+    "DATABASE_URL": {
+      "description": "PostgreSQL connection string (e.g., from Neon)",
+      "required": true
+    },
+    "NEXTAUTH_URL": {
+      "description": "Application URL (auto-set by Vercel)",
+      "required": true
+    },
+    "NEXTAUTH_SECRET": {
+      "description": "Secret key for NextAuth session encryption",
+      "required": true
+    },
+    "NEXT_PUBLIC_APP_URL": {
+      "description": "Public-facing application URL",
+      "required": true
+    },
+    "NEXT_PUBLIC_GA_MEASUREMENT_ID": {
+      "description": "Google Analytics measurement ID (optional)",
+      "required": false
+    },
+    "GMAIL_USER": {
+      "description": "Gmail address for sending emails",
+      "required": false
+    },
+    "GMAIL_APP_PASSWORD": {
+      "description": "Gmail app-specific password",
+      "required": false
+    },
+    "ADMIN_EMAIL": {
+      "description": "Default admin email",
+      "required": false
+    },
+    "ADMIN_PASSWORD": {
+      "description": "Default admin password",
+      "required": false
+    },
+    "ADMIN_NAME": {
+      "description": "Default admin name",
+      "required": false
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/api/health",
+      "destination": "/api/auth/session",
+      "permanent": false
+    }
+  ]
+}

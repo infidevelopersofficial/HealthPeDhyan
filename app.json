@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "d5035fca-4ac3-4342-8e46-fb3349ea63c3"
+      }
+    },
+    "android": {
+      "package": "com.cpmjha.healthpedhyan"
+    }
+  }
+}
