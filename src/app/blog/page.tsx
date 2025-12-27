@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { generateMetadata as genMeta } from '@/lib/seo';
+export const dynamic = "force-dynamic";
 
 export const metadata = genMeta({
   title: 'Blog - Health & Nutrition Articles',
