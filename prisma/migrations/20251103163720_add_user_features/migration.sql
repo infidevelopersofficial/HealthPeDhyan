@@ -14,14 +14,18 @@ CREATE TYPE "LabelScanStatus" AS ENUM ('PROCESSING', 'COMPLETED', 'FAILED');
 -- CreateEnum
 CREATE TYPE "TelemetryEventType" AS ENUM ('PAGE_VIEW', 'USER_ACTION', 'API_CALL', 'ERROR', 'PERFORMANCE', 'FEATURE_USAGE');
 
--- AlterEnum
-ALTER TYPE "UserRole" ADD VALUE 'USER';
+-- AlterEnum (Add new enum value - must be in separate transaction)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'USER' AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'UserRole')) THEN
+        ALTER TYPE "UserRole" ADD VALUE 'USER';
+    END IF;
+END $$;
 
 -- AlterTable
 ALTER TABLE "articles" ADD COLUMN     "tags" TEXT,
 ADD COLUMN     "videoUrl" TEXT;
 
--- AlterTable
+-- AlterTable (separated to allow enum value to be committed first)
 ALTER TABLE "users" ADD COLUMN     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "lastLoginAt" TIMESTAMP(3),
 ADD COLUMN     "loginCount" INTEGER NOT NULL DEFAULT 0,
@@ -30,8 +34,7 @@ ADD COLUMN     "providerId" TEXT,
 ADD COLUMN     "resetToken" TEXT,
 ADD COLUMN     "resetTokenExpiry" TIMESTAMP(3),
 ADD COLUMN     "verificationToken" TEXT,
-ALTER COLUMN "passwordHash" DROP NOT NULL,
-ALTER COLUMN "role" SET DEFAULT 'USER';
+ALTER COLUMN "passwordHash" DROP NOT NULL;
 
 -- CreateTable
 CREATE TABLE "login_otps" (
@@ -331,3 +334,6 @@ ALTER TABLE "product_views" ADD CONSTRAINT "product_views_productId_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "search_history" ADD CONSTRAINT "search_history_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AlterTable (Set default value for role after enum value is committed)
+ALTER TABLE "users" ALTER COLUMN "role" SET DEFAULT 'USER';
