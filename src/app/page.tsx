@@ -1,13 +1,20 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { prisma } from '@/lib/prisma';
 import { formatDate } from '@/lib/utils';
 import { generateOrganizationSchema, generateWebsiteSchema } from '@/lib/seo';
-import { ProductCard } from '@/components/product-card';
+import { ProductCardEnhanced } from '@/components/product/product-card-enhanced';
+import { CategoryShowcase } from '@/components/home/category-showcase';
+import { HeroSection } from '@/components/home/hero-section';
+import { TrustIndicators } from '@/components/home/trust-indicators';
+import { HowItWorks } from '@/components/home/how-it-works';
+import { NewsletterSection } from '@/components/home/newsletter-section';
 import { mockProducts, mockArticles } from '@/lib/mock-data';
-import Image from 'next/image';
+
+export const dynamic = 'force-dynamic';
 
 async function getFeaturedProducts() {
   try {
@@ -23,16 +30,39 @@ async function getFeaturedProducts() {
             badge: true,
           },
         },
-        affiliateLinks: true,
+        affiliateLinks: {
+          where: { isActive: true },
+        },
       },
-      take: 6,
+      take: 8,
       orderBy: {
         healthScore: 'desc',
       },
     });
   } catch (error) {
-    // Return mock data if database is not available
     console.log('Database not available, using mock data');
+    return null;
+  }
+}
+
+async function getCategories() {
+  try {
+    const categories = await prisma.category.findMany({
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+      orderBy: {
+        products: {
+          _count: 'desc',
+        },
+      },
+      take: 8,
+    });
+    return categories;
+  } catch (error) {
+    console.log('Categories not available');
     return null;
   }
 }
@@ -49,16 +79,32 @@ async function getRecentArticles() {
       take: 3,
     });
   } catch (error) {
-    // Return mock data if database is not available
     console.log('Database not available, using mock data');
     return null;
   }
 }
 
-export default async function HomePage() {
-  const [dbProducts, dbArticles] = await Promise.all([getFeaturedProducts(), getRecentArticles()]);
+async function getStats() {
+  try {
+    const [productCount, articleCount, brandCount] = await Promise.all([
+      prisma.product.count({ where: { isMeetsStandard: true } }),
+      prisma.article.count({ where: { status: 'PUBLISHED' } }),
+      prisma.brand.count(),
+    ]);
+    return { productCount, articleCount, brandCount };
+  } catch {
+    return { productCount: 100, articleCount: 50, brandCount: 25 };
+  }
+}
 
-  // Use database data if available, otherwise use mock data
+export default async function HomePage() {
+  const [dbProducts, dbArticles, categories, stats] = await Promise.all([
+    getFeaturedProducts(),
+    getRecentArticles(),
+    getCategories(),
+    getStats(),
+  ]);
+
   const products = dbProducts && dbProducts.length > 0 ? dbProducts : mockProducts;
   const articles = dbArticles && dbArticles.length > 0 ? dbArticles : mockArticles;
   const usingMockData = !dbProducts || dbProducts.length === 0;
@@ -80,7 +126,7 @@ export default async function HomePage() {
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className="text-center text-white">
               <p className="text-sm font-medium">
-                🌟 Demo Mode - Viewing Sample Products | Full catalog available after backend deployment
+                Demo Mode - Viewing Sample Products | Full catalog available after backend deployment
               </p>
             </div>
           </div>
@@ -88,59 +134,52 @@ export default async function HomePage() {
       )}
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-primary-50 to-white py-20 lg:py-32">
-        <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-neutral-900 sm:text-6xl">
-              Healthy choices made easy
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-neutral-600 max-w-2xl mx-auto">
-              Discover products free from palm oil, low in sugar, and made with clean ingredients.
-              We do the research, you make healthier choices.
-            </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button asChild size="lg">
-                <Link href="/shop">Shop Healthier Now</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <Link href="/standards">Our Standards</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection stats={stats} />
+
+      {/* Trust Indicators */}
+      <TrustIndicators />
+
+      {/* Shop by Category */}
+      {categories && categories.length > 0 && (
+        <CategoryShowcase categories={categories} />
+      )}
 
       {/* Featured Products */}
-      <section className="py-16 lg:py-24">
+      <section className="py-16 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-neutral-900">
-                Featured Products
+              <Badge variant="secondary" className="mb-3">Curated Selection</Badge>
+              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-neutral-900">
+                Top Healthy Products
               </h2>
-              <p className="mt-2 text-neutral-600">
-                Curated picks that meet our health standards
+              <p className="mt-2 text-neutral-600 max-w-xl">
+                Hand-picked products that meet our strict health standards. No palm oil, no artificial colors, low sugar.
               </p>
             </div>
-            <Button asChild variant="outline">
-              <Link href="/shop">View All</Link>
+            <Button asChild variant="outline" size="lg" className="w-fit">
+              <Link href="/shop">
+                View All Products
+                <span className="ml-2">→</span>
+              </Link>
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {products.slice(0, 8).map((product, index) => (
+              <ProductCardEnhanced
+                key={product.id}
+                product={product}
+                priority={index < 4}
+              />
             ))}
           </div>
 
           {usingMockData && (
             <div className="mt-12 text-center">
-              <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-50 border border-blue-200 rounded-xl">
                 <span className="text-sm text-blue-800">
-                  💡 <strong>Tip:</strong> Deploy your backend to see your full product catalog. See{' '}
-                  <Link href="/docs/deployment" className="underline font-medium">
-                    DEPLOYMENT_GUIDE.md
-                  </Link>
+                  <strong>Tip:</strong> Deploy your backend to see your full product catalog.
                 </span>
               </div>
             </div>
@@ -148,53 +187,48 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* How We Choose */}
-      <section className="bg-neutral-50 py-16">
-        <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold tracking-tight text-neutral-900">
-              How We Choose Products
-            </h2>
-            <p className="mt-4 text-lg text-neutral-600">
-              Every product is evaluated against our strict health standards. We check for palm oil,
-              artificial colors, trans fats, and sugar content.
-            </p>
-            <Button asChild className="mt-8">
-              <Link href="/standards">See Our Complete Standards</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* How It Works */}
+      <HowItWorks />
 
       {/* Blog Highlights */}
-      <section className="py-16 lg:py-24">
+      <section className="py-16 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-neutral-900">Latest Articles</h2>
+              <Badge variant="secondary" className="mb-3">Health Education</Badge>
+              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-neutral-900">
+                Latest Articles
+              </h2>
               <p className="mt-2 text-neutral-600">
-                Learn about ingredients, nutrition, and healthier choices
+                Learn about ingredients, nutrition, and making healthier choices
               </p>
             </div>
-            <Button asChild variant="outline">
-              <Link href="/blog">View All Articles</Link>
+            <Button asChild variant="outline" size="lg" className="w-fit">
+              <Link href="/blog">
+                All Articles
+                <span className="ml-2">→</span>
+              </Link>
             </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {articles.map((article) => (
-              <Card key={article.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+              <Card key={article.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-2 hover:border-primary-300">
                 <CardHeader className="p-0">
-                  {article.coverImage && (
-                    <Link href={`/blog/${article.slug}`} className="block relative aspect-video overflow-hidden">
+                  <Link href={`/blog/${article.slug}`} className="block relative aspect-video overflow-hidden bg-neutral-100">
+                    {article.coverImage ? (
                       <Image
                         src={article.coverImage}
                         alt={article.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                    </Link>
-                  )}
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-5xl opacity-30">📰</span>
+                      </div>
+                    )}
+                  </Link>
                   <div className="p-6">
                     {article.category && (
                       <Badge variant="secondary" className="w-fit mb-3">
@@ -216,9 +250,9 @@ export default async function HomePage() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   <p className="text-sm text-neutral-600 line-clamp-3 mb-4">{article.excerpt}</p>
-                  <Button asChild variant="link" className="px-0 font-semibold group-hover:gap-2 transition-all">
+                  <Button asChild variant="link" className="px-0 font-semibold">
                     <Link href={`/blog/${article.slug}`}>
-                      Read Full Article <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                      Read Article <span className="ml-1">→</span>
                     </Link>
                   </Button>
                 </CardContent>
@@ -227,6 +261,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Newsletter Section */}
+      <NewsletterSection />
     </>
   );
 }
